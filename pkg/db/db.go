@@ -39,10 +39,18 @@ func Init(dbFile string) error {
 		log.Println("Создание таблиц в БД...")
 		_, err = DB.Exec(schema)
 		if err != nil {
+			DB.Close()
 			return err
 		}
 		log.Println("Таблицы успешно созданы")
 	}
 
+	return nil
+}
+
+func Close() error {
+	if DB != nil {
+		return DB.Close()
+	}
 	return nil
 }

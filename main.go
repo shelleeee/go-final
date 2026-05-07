@@ -1,10 +1,11 @@
 package main
 
 import (
-	"go_final_project/pkg/db"
-	"go_final_project/pkg/server"
 	"log"
 	"os"
+
+	"go_final_project/pkg/db"
+	"go_final_project/pkg/server"
 )
 
 func main() {
@@ -15,6 +16,8 @@ func main() {
 	if err := db.Init(dbFile); err != nil {
 		log.Fatal("Ошибка инициализации БД:", err)
 	}
+	defer db.Close()
+
 	if err := server.Run(); err != nil {
 		log.Fatal("Ошибка при запуске сервера:", err)
 	}

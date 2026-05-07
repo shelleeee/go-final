@@ -15,7 +15,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		return "", nil
 	}
 
-	date, err := time.Parse("20060102", dstart)
+	date, err := time.Parse(DateFormat, dstart)
 	if err != nil {
 		return "", fmt.Errorf("неверный формат даты: %s", dstart)
 	}
@@ -46,7 +46,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 				break
 			}
 		}
-		return next.Format("20060102"), nil
+		return next.Format(DateFormat), nil
 
 	case "y":
 		next := date
@@ -56,7 +56,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 				break
 			}
 		}
-		return next.Format("20060102"), nil
+		return next.Format(DateFormat), nil
 
 	case "w":
 		if len(parts) < 2 {
@@ -89,7 +89,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 			}
 			next = next.AddDate(0, 0, 1)
 		}
-		return next.Format("20060102"), nil
+		return next.Format(DateFormat), nil
 
 	case "m":
 		if len(parts) < 2 {
@@ -160,7 +160,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 			}
 
 			if matched && next.After(now) {
-				return next.Format("20060102"), nil
+				return next.Format(DateFormat), nil
 			}
 		}
 
@@ -170,6 +170,11 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 }
 
 func nextDateHandler(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method != http.MethodGet {
+		http.Error(w, `{"error": "Метод не поддерживается"}`, http.StatusMethodNotAllowed)
+		return
+	}
 	nowStr := r.URL.Query().Get("now")
 	dateStr := r.URL.Query().Get("date")
 	repeat := r.URL.Query().Get("repeat")
@@ -180,7 +185,7 @@ func nextDateHandler(w http.ResponseWriter, r *http.Request) {
 	if nowStr == "" {
 		now = time.Now()
 	} else {
-		now, err = time.Parse("20060102", nowStr)
+		now, err = time.Parse(DateFormat, nowStr)
 		if err != nil {
 			http.Error(w, "Неверный формат параметра now", http.StatusBadRequest)
 			return

@@ -25,13 +25,13 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	now := time.Now().UTC()
 	now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-	today := now.Format("20060102")
+	today := now.Format(DateFormat)
 
 	if task.Date == "" {
 		task.Date = today
 	}
 
-	dateTime, err := time.Parse("20060102", task.Date)
+	dateTime, err := time.Parse(DateFormat, task.Date)
 	if err != nil {
 		writeJSON(w, map[string]string{"error": "Неверный формат даты"}, http.StatusBadRequest)
 		return

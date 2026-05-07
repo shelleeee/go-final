@@ -5,12 +5,19 @@ import (
 	"net/http"
 )
 
+const (
+	DateFormat = "20060102"
+	TasksLimit = 50
+)
+
 func writeJSON(w http.ResponseWriter, data interface{}, statusCode int) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(statusCode)
 
 	if data != nil {
-		json.NewEncoder(w).Encode(data)
+		if err := json.NewEncoder(w).Encode(data); err != nil {
+			http.Error(w, `{"error": "Ошибка кодирования JSON"}`, http.StatusInternalServerError)
+		}
 	}
 }
 

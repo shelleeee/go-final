@@ -55,7 +55,25 @@ func Tasks(limit int, search string) ([]*Task, error) {
 			sql.Named("date", searchDate),
 			sql.Named("limit", limit),
 		}
-	} else if search != "" {
+		rows, err := DB.Query(query, args...)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		tasks := make([]*Task, 0)
+		for rows.Next() {
+			var task Task
+			err := rows.Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
+			if err != nil {
+				return nil, err
+			}
+			tasks = append(tasks, &task)
+		}
+		return tasks, rows.Err()
+	}
+
+	if search != "" {
 		query = `
             SELECT id, date, title, comment, repeat
             FROM scheduler
@@ -68,18 +86,33 @@ func Tasks(limit int, search string) ([]*Task, error) {
 			sql.Named("search", searchPattern),
 			sql.Named("limit", limit),
 		}
-	} else {
-		query = `
-            SELECT id, date, title, comment, repeat
-            FROM scheduler
-            ORDER BY date ASC
-            LIMIT :limit
-        `
-		args = []interface{}{
-			sql.Named("limit", limit),
+		rows, err := DB.Query(query, args...)
+		if err != nil {
+			return nil, err
 		}
+		defer rows.Close()
+
+		tasks := make([]*Task, 0)
+		for rows.Next() {
+			var task Task
+			err := rows.Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
+			if err != nil {
+				return nil, err
+			}
+			tasks = append(tasks, &task)
+		}
+		return tasks, rows.Err()
 	}
 
+	query = `
+        SELECT id, date, title, comment, repeat
+        FROM scheduler
+        ORDER BY date ASC
+        LIMIT :limit
+    `
+	args = []interface{}{
+		sql.Named("limit", limit),
+	}
 	rows, err := DB.Query(query, args...)
 	if err != nil {
 		return nil, err
@@ -87,7 +120,6 @@ func Tasks(limit int, search string) ([]*Task, error) {
 	defer rows.Close()
 
 	tasks := make([]*Task, 0)
-
 	for rows.Next() {
 		var task Task
 		err := rows.Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
@@ -96,12 +128,7 @@ func Tasks(limit int, search string) ([]*Task, error) {
 		}
 		tasks = append(tasks, &task)
 	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return tasks, nil
+	return tasks, rows.Err()
 }
 
 func GetTask(id string) (*Task, error) {
